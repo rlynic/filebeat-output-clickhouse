@@ -12,7 +12,7 @@ git clone git@github.com:elastic/beats.git
 go get -u github.com/rlynic/filebeat-output-clickhouse
 ```
 
-##modify beats outputs includes, add clickhouse output
+## modify beats outputs includes, add clickhouse output
 ```
 cd {your beats directory}/github.com/elastic/beats/libbeat/publisher/includes/includes.go
 ```
@@ -22,14 +22,14 @@ import (
 	_ "github.com/rlynic/filebeat-output-clickhouse"
 )
 ```
-##build package, in filebeat
+## build package, in filebeat
 ```
 cd {your beats directory}/github.com/elastic/beats/filebeat
 make
 ```
 
 # Configure Output
-##clickHouse output configuration
+## clickHouse output configuration
 ```
 #----------------------------- ClickHouse output --------------------------------
 output.clickHouse:
