@@ -8,11 +8,10 @@ import (
 	"github.com/elastic/beats/libbeat/outputs"
 )
 
-
-var logger = logp.NewLogger("clickhouse")
+var logger = logp.NewLogger("ClickHouse")
 
 func init() {
-	outputs.RegisterType("clickhouse", makeClickHouse)
+	outputs.RegisterType("clickHouse", makeClickHouse)
 }
 
 func makeClickHouse(
@@ -27,11 +26,11 @@ func makeClickHouse(
 	}
 
 	if len(config.Table) == 0 {
-		return outputs.Fail(errors.New("the table name must be set"))
+		return outputs.Fail(errors.New("ClickHouse: the table name must be set"))
 	}
 
 	if len(config.Columns) == 0 {
-		return outputs.Fail(errors.New("the table columns must be set"))
+		return outputs.Fail(errors.New("ClickHouse: the table columns must be set"))
 	}
 
 	client := newClient(observer, config.Url, config.Table, config.Columns)

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/ClickHouse/clickhouse-go"
+	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/outputs/codec"
 	"github.com/elastic/beats/libbeat/outputs/outil"
@@ -14,13 +15,13 @@ import (
 
 type client struct {
 	observer outputs.Observer
-	url string
+	url      string
 	key      outil.Selector
 	password string
-	table string
-	columns []string
+	table    string
+	columns  []string
 	codec    codec.Codec
-	connect *sql.DB
+	connect  *sql.DB
 }
 
 func newClient(
@@ -31,9 +32,9 @@ func newClient(
 ) *client {
 	return &client{
 		observer: observer,
-		url: url,
-		table: table,
-		columns: columns,
+		url:      url,
+		table:    table,
+		columns:  columns,
 	}
 }
 
@@ -46,9 +47,7 @@ func (c *client) Connect() error {
 	}
 	if err := connect.Ping(); err != nil {
 		if exception, ok := err.(*clickhouse.Exception); ok {
-			fmt.Printf("[%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
-		} else {
-			fmt.Println(err)
+			logger.Error("[%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
 		}
 		return err
 	}
@@ -89,22 +88,21 @@ func (c *client) Publish(batch publisher.Batch) error {
 					break
 				}
 			}
-		}else{
+		} else {
 			err = e
 		}
 		defer stmt.Close()
 	}
-
 	if err != nil {
-		if tx != nil{
+		if tx != nil {
 			tx.Rollback()
 		}
-		logger.Info("will sleep for one minute because an error occurs")
+		logp.Err("will sleep for one minute because an error occurs: %s", err)
 		// Sleep for one minute when an error occurs
 		time.Sleep(time.Second * 60)
 		batch.RetryEvents(events)
-	}else{
-		if tx != nil{
+	} else {
+		if tx != nil {
 			tx.Commit()
 		}
 		batch.ACK()
@@ -146,6 +144,5 @@ func (c *client) generateSql() string {
 		}
 	}
 
-	return fmt.Sprint("insert into ", c.table, " (", columnStr.String(), ") values (", valueStr.String(), ")", )
+	return fmt.Sprint("insert into ", c.table, " (", columnStr.String(), ") values (", valueStr.String(), ")")
 }
-

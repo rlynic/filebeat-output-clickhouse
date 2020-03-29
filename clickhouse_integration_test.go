@@ -16,14 +16,14 @@ import (
 
 var (
 	clickHouseUrl = "tcp://114.67.91.148:9000?debug=true"
-	columns = [3]string{"id", "name", "created_date"}
+	columns       = [3]string{"id", "name", "created_date"}
 )
 
 func TestPublish(t *testing.T) {
 	clickHouseConfig := map[string]interface{}{
-		"url":    		clickHouseUrl,
-		"table":		"ck_test",
-		"columns":		columns,
+		"url":     clickHouseUrl,
+		"table":   "ck_test",
+		"columns": columns,
 	}
 
 	err := prepare()
@@ -41,13 +41,13 @@ func TestPublish(t *testing.T) {
 	}
 }
 
-func testPublishList(t *testing.T, cfg map[string]interface{}){
+func testPublishList(t *testing.T, cfg map[string]interface{}) {
 	batches := 100
 	batchSize := 1000
 
 	output := newClickHouseTestingOutput(t, cfg)
 	err := sendTestEvents(output, batches, batchSize)
-	if err != nil{
+	if err != nil {
 		t.Fatalf("Error reading config: %v", err)
 	}
 
@@ -59,7 +59,7 @@ func newClickHouseTestingOutput(t *testing.T, cfg map[string]interface{}) output
 		t.Fatalf("Error reading config: %v", err)
 	}
 
-	plugin := outputs.FindFactory("clickhouse")
+	plugin := outputs.FindFactory("clickHouse")
 	if plugin == nil {
 		t.Fatalf("clickhouse output module not registered")
 	}
@@ -104,14 +104,14 @@ func createEvent(message int) beat.Event {
 			"ck-test": "ck-test-MetaValue",
 		},
 		Fields: common.MapStr{
-			"id": id.String(),
-			"name": fmt.Sprint("ck-test", rand.Intn(100000)),
+			"id":           id.String(),
+			"name":         fmt.Sprint("ck-test", rand.Intn(100000)),
 			"created_date": time.Now(),
 		},
 	}
 }
 
-func prepare() error{
+func prepare() error {
 	connect, err := getConn()
 	if err != nil {
 		return err
@@ -128,7 +128,7 @@ func prepare() error{
 	return err
 }
 
-func clean() error{
+func clean() error {
 	connect, err := getConn()
 	if err != nil {
 		return err
