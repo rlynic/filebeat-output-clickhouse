@@ -1,0 +1,30 @@
+sudo: required
+language: go
+go:
+  - 1.12.x
+  - 1.13.x
+  - 1.14.x
+  - master
+go_import_path: github.com/rlynic/filebeat-output-clickhouse
+services:
+  - docker
+install:
+  - go get github.com/elastic/beats/libbeat/beat
+  - go get github.com/elastic/beats/libbeat/commo
+  - go get github.com/elastic/beats/libbeat/logp
+  - go get github.com/elastic/beats/libbeat/outputs
+  - go get github.com/ClickHouse/clickhouse-go
+  - go get github.com/elastic/beats/libbeat/outputs/outest
+  - go get github.com/gofrs/uuid
+  - go get github.com/elastic/beats/libbeat/outputs/codec
+  - go get github.com/elastic/beats/libbeat/publisher
+  - go get github.com/elastic/beats/libbeat/publisher
+
+before_install:
+  - docker --version
+  - docker-compose --version
+  - docker-compose up -d
+script:
+  - ./go.test.sh
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
