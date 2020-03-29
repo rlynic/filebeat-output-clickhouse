@@ -13,8 +13,9 @@ go get -u github.com/rlynic/filebeat-output-clickhouse
 ```
 
 ##modify beats outputs includes, add clickhouse output
-
-cd **{your beats directory}**/github.com/elastic/beats/libbeat/publisher/includes/includes.go
+```
+cd {your beats directory}/github.com/elastic/beats/libbeat/publisher/includes/includes.go
+```
 ```
 import (
 	...
@@ -23,7 +24,7 @@ import (
 ```
 ##build package, in filebeat
 ```
-cd **{your beats directory}**/github.com/elastic/beats/filebeat
+cd {your beats directory}/github.com/elastic/beats/filebeat
 make
 ```
 
