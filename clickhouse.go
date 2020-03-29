@@ -1,4 +1,4 @@
-package clickhouse
+package clickhouse_20200328
 
 import (
 	"errors"
@@ -33,7 +33,7 @@ func makeClickHouse(
 		return outputs.Fail(errors.New("ClickHouse: the table columns must be set"))
 	}
 
-	client := newClient(observer, config.Url, config.Table, config.Columns)
+	client := newClient(observer, config.Url, config.Table, config.Columns, config.RetryInterval)
 
 	return outputs.Success(config.BulkMaxSize, config.MaxRetries, client)
 }

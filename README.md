@@ -41,4 +41,6 @@ output.clickHouse:
   table: ck_test
   # table columns for data filter, match the keys in log file
   columns: ["id", "name", "created_date"]
+  # will sleep the retry_interval seconds when unexpected exception, default 60s
+  retry_interval: 60
 ```

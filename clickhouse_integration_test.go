@@ -1,4 +1,4 @@
-package clickhouse
+package clickhouse_20200328
 
 import (
 	"database/sql"

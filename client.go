@@ -1,9 +1,8 @@
-package clickhouse
+package clickhouse_20200328
 
 import (
 	"database/sql"
 	"fmt"
-	"github.com/ClickHouse/clickhouse-go"
 	"github.com/elastic/beats/libbeat/logp"
 	"github.com/elastic/beats/libbeat/outputs"
 	"github.com/elastic/beats/libbeat/outputs/codec"
@@ -11,17 +10,20 @@ import (
 	"github.com/elastic/beats/libbeat/publisher"
 	"strings"
 	"time"
+
+	_ "github.com/ClickHouse/clickhouse-go"
 )
 
 type client struct {
-	observer outputs.Observer
-	url      string
-	key      outil.Selector
-	password string
-	table    string
-	columns  []string
-	codec    codec.Codec
-	connect  *sql.DB
+	observer      outputs.Observer
+	url           string
+	key           outil.Selector
+	password      string
+	table         string
+	columns       []string
+	retryInterval int
+	codec         codec.Codec
+	connect       *sql.DB
 }
 
 func newClient(
@@ -29,31 +31,33 @@ func newClient(
 	url string,
 	table string,
 	columns []string,
+	retryInterval int,
 ) *client {
 	return &client{
-		observer: observer,
-		url:      url,
-		table:    table,
-		columns:  columns,
+		observer:      observer,
+		url:           url,
+		table:         table,
+		columns:       columns,
+		retryInterval: retryInterval,
 	}
 }
 
 func (c *client) Connect() error {
 	logger.Debugf("connect")
 
+	var err error
 	connect, err := sql.Open("clickhouse", c.url)
-	if err != nil {
-		return err
-	}
-	if err := connect.Ping(); err != nil {
-		if exception, ok := err.(*clickhouse.Exception); ok {
-			logger.Error("[%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
+	if err == nil {
+		if e := connect.Ping(); e != nil {
+			err = e
 		}
-		return err
+	}
+	if err != nil {
+		c.sleepBeforeRetry(err)
 	}
 	c.connect = connect
 
-	return nil
+	return err
 }
 
 func (c *client) Close() error {
@@ -82,7 +86,6 @@ func (c *client) Publish(batch publisher.Batch) error {
 		if e == nil {
 			for _, row := range rows {
 				_, e := stmt.Exec(row...)
-
 				if e != nil {
 					err = e
 					break
@@ -91,15 +94,15 @@ func (c *client) Publish(batch publisher.Batch) error {
 		} else {
 			err = e
 		}
-		defer stmt.Close()
+		if stmt != nil {
+			defer stmt.Close()
+		}
 	}
 	if err != nil {
 		if tx != nil {
 			tx.Rollback()
 		}
-		logp.Err("will sleep for one minute because an error occurs: %s", err)
-		// Sleep for one minute when an error occurs
-		time.Sleep(time.Second * 60)
+		c.sleepBeforeRetry(err)
 		batch.RetryEvents(events)
 	} else {
 		if tx != nil {
@@ -145,4 +148,9 @@ func (c *client) generateSql() string {
 	}
 
 	return fmt.Sprint("insert into ", c.table, " (", columnStr.String(), ") values (", valueStr.String(), ")")
+}
+
+func (c *client) sleepBeforeRetry(err error) {
+	logp.Err("will sleep for %v seconds because an error occurs: %s", c.retryInterval, err)
+	time.Sleep(time.Second * time.Duration(c.retryInterval))
 }
