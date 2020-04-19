@@ -1,0 +1,25 @@
+#=========================== Filebeat inputs =============================
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /tmp/record.log
+    json:
+      keys_under_root: true
+      overwrite_keys: true
+      close_inactive: 24h
+#================================ ClickHouse output ======================
+output.clickHouse:
+  # clickHouse tcp link address
+  # https://github.com/ClickHouse/clickhouse-go
+  # example tcp://host1:9000?username=user&password=qwerty&database=clicks&read_timeout=10&write_timeout=20&alt_hosts=host2:9000,host3:9000
+  url: "tcp://127.0.0.1:9000"
+  # table name for receive data
+  table: ck_test
+  # table columns for data filter, match the keys in log file
+  columns: ["id", "name", "created_date"]
+  # will sleep for retry_interval seconds when unexpected exception
+  retry_interval: 3
+  # whether to skip the unexpected type row, when true will skip unexpected type row, default false will always try again
+  skip_unexpected_type_row: false
+

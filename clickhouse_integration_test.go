@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	clickHouseUrl = "tcp://114.67.91.148:9000?debug=true"
+	clickHouseUrl = "tcp://127.0.0.1:9000?debug=true"
 	columns       = [3]string{"id", "name", "created_date"}
 )
 

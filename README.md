@@ -43,4 +43,6 @@ output.clickHouse:
   columns: ["id", "name", "created_date"]
   # will sleep the retry_interval seconds when unexpected exception, default 60s
   retry_interval: 60
+  # whether to skip the unexpected type row, when true will skip unexpected type row, default false will always try again
+  skip_unexpected_type_row: false
 ```
