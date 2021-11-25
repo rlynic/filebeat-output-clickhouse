@@ -1,14 +1,15 @@
 package clickhouse_20200328
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/ClickHouse/clickhouse-go/lib/column"
-	"github.com/elastic/beats/libbeat/logp"
-	"github.com/elastic/beats/libbeat/outputs"
-	"github.com/elastic/beats/libbeat/outputs/codec"
-	"github.com/elastic/beats/libbeat/outputs/outil"
-	"github.com/elastic/beats/libbeat/publisher"
+	"github.com/elastic/beats/v7/libbeat/logp"
+	"github.com/elastic/beats/v7/libbeat/outputs"
+	"github.com/elastic/beats/v7/libbeat/outputs/codec"
+	"github.com/elastic/beats/v7/libbeat/outputs/outil"
+	"github.com/elastic/beats/v7/libbeat/publisher"
 	"reflect"
 	"strings"
 	"time"
@@ -75,7 +76,7 @@ func (c *client) Close() error {
 	return c.connect.Close()
 }
 
-func (c *client) Publish(batch publisher.Batch) error {
+func (c *client) Publish(context context.Context, batch publisher.Batch) error {
 	if c == nil {
 		panic("no client")
 	}
@@ -87,9 +88,9 @@ func (c *client) Publish(batch publisher.Batch) error {
 	c.observer.NewBatch(len(events))
 
 	rows := c.extractData(events)
-	sql := c.generateSql()
+	sqlText := c.generateSql()
 
-	err := c.batchInsert(sql, rows, nil)
+	err := c.batchInsert(sqlText, rows, nil)
 	if err != nil {
 		c.sleepBeforeRetry(err)
 		batch.RetryEvents(events)
